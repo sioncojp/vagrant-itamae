@@ -1,0 +1,81 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+### [Server1]
+private_ip01 = "<%= node['private_ip1'] %>"
+cpu1 = "<%= node['cpu1'] %>"
+mem1 = "<%= node['mem1'] %>"
+
+### [Server2]
+private_ip02 = "<%= node['private_ip2'] %>"
+cpu2 = "<%= node['cpu2'] %>"
+mem2 = "<%= node['mem2'] %>"
+
+
+VAGRANTFILE_API_VERSION = "2"
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+  ### vagrant sshで接続するアカウント
+  config.ssh.pty = true
+
+  ### server1の設定内容
+  config.vm.define "server1" do |server|
+    server.vm.box = ""
+    server.vm.network "private_network", ip: private_ip01, host: "2222"
+    ### rails用にport forwarded。立ち上げるときは、bundle exec rails server -b 0.0.0.0 --port=8000とするとローカルの開発環境からみれるようになる
+    # server.vm.network "forwarded_port",  host: "8000", guest: "8000"
+    config.vm.synced_folder "./server1", "/vagrant",
+      type: "nfs",
+      nfs: { mount_options: [
+	"dmode=777",
+	"fmode=777",
+	"async",
+	"nolock",
+	"nfsvers=3",
+	"vers=3",
+	"tcp",
+	"noatime",
+	"soft",
+	"rsize=8192",
+	"wsize=8192"
+	]
+      }
+    config.vm.provider "virtualbox" do |vb|
+      ### virtualbox上で表示される名前
+      vb.name = "server1"
+      vb.customize ["modifyvm", :id, "--memory", mem1]
+      vb.customize ["modifyvm", :id, "--cpus", cpu1,  "--ioapic", "on", "--natdnshostresolver1", "off"]
+    end
+    config.vm.provision :shell, :path => "bootstrap.sh"
+  end
+
+ ### server2の設定内容
+  config.vm.define "server2" do |server|
+    server.vm.box = ""
+    server.vm.network "private_network", ip: private_ip02, host: "2223"
+    ### rails用にport forwarded。立ち上げるときは、bundle exec rails server -b 0.0.0.0 --port=8000とするとローカルの開発環境からみれるようになる
+    # server.vm.network "forwarded_port",  host: "8001", guest: "8001"
+    config.vm.synced_folder "./server2", "/vagrant",
+      type: "nfs",
+      nfs: { mount_options: [
+	"dmode=777",
+	"fmode=777",
+	"async",
+	"nolock",
+	"nfsvers=3",
+	"vers=3",
+	"tcp",
+	"noatime",
+	"soft",
+	"rsize=8192",
+	"wsize=8192"
+	]
+      }
+    config.vm.provider "virtualbox" do |vb|
+      ### virtualbox上で表示される名前
+      vb.name = "server1"
+      vb.customize ["modifyvm", :id, "--memory", mem2]
+      vb.customize ["modifyvm", :id, "--cpus", cpu2,  "--ioapic", "on", "--natdnshostresolver1", "off"]
+    end
+    config.vm.provision :shell, :path => "bootstrap.sh"
+  end
+end
