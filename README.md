@@ -22,6 +22,7 @@ $ cd $PATH/vagrant
 起動する : $ vagrant up server1 --provision
 停止する : $ vagrant halt server1
 削除する : $ vagrant destroy server1
+sshする : $ vagrant ssh server1
 
 # 今何を実行してるか見たい場合は、下記でログが見れます。
 $ tail -f /tmp/setup_vagrant.log
